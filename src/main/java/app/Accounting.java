@@ -9,31 +9,30 @@ import java.util.List;
 
 public class Accounting {
 
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMM");
+    private IBudgetRepo budget;
+
     public Accounting(IBudgetRepo budget) {
         this.budget = budget;
     }
 
-    private IBudgetRepo budget;
-
     private YearMonth getYearMonth(String yearMonth) {
-        return YearMonth.parse(yearMonth, DateTimeFormatter.ofPattern("yyyyMM"));
+        return YearMonth.parse(yearMonth, dateTimeFormatter);
+    }
+
+    private boolean isMonthMatch(Budget budget, int month) {
+        return month == getYearMonth(budget.yearMonth).getMonthValue();
     }
 
     private Budget getFullMonthBudget(LocalDate date) {
         List<Budget> list = budget.getAll();
         int month = date.getMonthValue();
         for (Budget budget : list) {
-            YearMonth ym = getYearMonth(budget.yearMonth);
-            if (month == ym.getMonthValue()) {
+            if (isMonthMatch(budget, month)) {
                 return budget;
             }
         }
         return null;
-    }
-
-    public double totalAmount(LocalDate start, LocalDate end) {
-        return isCrossMonth(start, end) ?
-            getCrossMonthBudget(start, end) : getSameMonth(start, end);
     }
 
     private double getSameMonth(LocalDate start, LocalDate end) {
@@ -41,18 +40,8 @@ public class Accounting {
         if (monthBudget == null) {
             return 0;
         }
-        if (isSameDate(start, end)) {
-            return getSingleDayBudget(start);
-        }
         Period p = Period.between(start, end);
-        if (p.getDays() == 1) {
-            return (getSingleDayBudget(start)) * (p.getDays() + 1);
-        }
-        return monthBudget.amount;
-    }
-
-    private boolean isSameDate(LocalDate start, LocalDate end) {
-        return start.equals(end);
+        return (getSingleDayBudget(start)) * (p.getDays() + 1);
     }
 
     private boolean isCrossMonth(LocalDate start, LocalDate end) {
@@ -60,9 +49,6 @@ public class Accounting {
     }
 
     private double getCrossMonthBudget(LocalDate start, LocalDate end) {
-        if (start.isAfter(end)) {
-            return 0;
-        }
         int intervalAmount = 0;
         if (Period.between(start, end).getMonths() > 1) {
             LocalDate intervalDate = start;
@@ -73,18 +59,27 @@ public class Accounting {
         return getStartMonthAmount(start) + getEndMonthAmount(end) + intervalAmount;
     }
 
-    private int getEndMonthAmount(LocalDate date) {
+    private double getEndMonthAmount(LocalDate date) {
         int daysInEnd = date.getDayOfMonth();
         return getSingleDayBudget(date) * daysInEnd;
     }
 
-    private int getStartMonthAmount(LocalDate date) {
+    private double getStartMonthAmount(LocalDate date) {
         int daysInStart = date.lengthOfMonth() - date.getDayOfMonth() + 1;
         return getSingleDayBudget(date) * daysInStart;
 
     }
 
-    private int getSingleDayBudget(LocalDate date) {
+    private double getSingleDayBudget(LocalDate date) {
         return getFullMonthBudget(date).amount / date.lengthOfMonth();
+    }
+
+    public double totalAmount(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) {
+            // 開始大於結束當錯誤輸入回傳0
+            return 0;
+        }
+        return isCrossMonth(start, end) ?
+                getCrossMonthBudget(start, end) : getSameMonth(start, end);
     }
 }
