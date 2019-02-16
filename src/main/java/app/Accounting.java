@@ -49,9 +49,6 @@ public class Accounting {
     }
 
     private double getCrossMonthBudget(LocalDate start, LocalDate end) {
-        if (start.isAfter(end)) {
-            return 0;
-        }
         int intervalAmount = 0;
         if (Period.between(start, end).getMonths() > 1) {
             LocalDate intervalDate = start;
@@ -78,6 +75,10 @@ public class Accounting {
     }
 
     public double totalAmount(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) {
+            // 開始大於結束當錯誤輸入回傳0
+            return 0;
+        }
         return isCrossMonth(start, end) ?
                 getCrossMonthBudget(start, end) : getSameMonth(start, end);
     }
