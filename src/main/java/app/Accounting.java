@@ -32,48 +32,45 @@ public class Accounting {
     }
 
     public double totalAmount(LocalDate start, LocalDate end) {
+        return isCrossMonth(start, end) ?
+            getCrossMonthBudget(start, end) : getSameMonth(start, end);
+    }
 
-        if(start.isAfter(end)) {
-            return 0;
-        }
-
-        if (start.getMonthValue() != end.getMonthValue()) {
-
-            int startAmount = getStartMonthAmount(start);
-
-            int intervalMonths = Period.between(start, end).getMonths();
-            int intervalAmount = 0;
-            LocalDate intervalDate = start;
-            if(intervalMonths>1){
-                for(int i =start.getMonthValue();i<end.getMonthValue()-1;i++){
-                    intervalDate = intervalDate.plusMonths(1);
-                    intervalAmount += getFullMonthBudget(intervalDate).amount;
-                }
-            }
-
-            int endAmount = getEndMonthAmount(end);
-
-            return startAmount + endAmount + intervalAmount;
-        }
-
-
-        // same month.
+    private double getSameMonth(LocalDate start, LocalDate end) {
         Budget monthBudget = getFullMonthBudget(start);
         if (monthBudget == null) {
             return 0;
         }
-        if (start.equals(end)) {
+        if (isSameDate(start, end)) {
             return getSingleDayBudget(start);
         }
-
-
-
         Period p = Period.between(start, end);
-
         if (p.getDays() == 1) {
             return (getSingleDayBudget(start)) * (p.getDays() + 1);
         }
         return monthBudget.amount;
+    }
+
+    private boolean isSameDate(LocalDate start, LocalDate end) {
+        return start.equals(end);
+    }
+
+    private boolean isCrossMonth(LocalDate start, LocalDate end) {
+        return start.getMonthValue() != end.getMonthValue();
+    }
+
+    private double getCrossMonthBudget(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) {
+            return 0;
+        }
+        int intervalAmount = 0;
+        if (Period.between(start, end).getMonths() > 1) {
+            LocalDate intervalDate = start;
+            for (int i = start.getMonthValue(); i < end.getMonthValue() - 1; i++) {
+                intervalAmount += getFullMonthBudget(intervalDate.plusMonths(1)).amount;
+            }
+        }
+        return getStartMonthAmount(start) + getEndMonthAmount(end) + intervalAmount;
     }
 
     private int getEndMonthAmount(LocalDate date) {
