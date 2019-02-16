@@ -40,18 +40,8 @@ public class Accounting {
         if (monthBudget == null) {
             return 0;
         }
-        if (isSameDate(start, end)) {
-            return getSingleDayBudget(start);
-        }
         Period p = Period.between(start, end);
-        if (p.getDays() == 1) {
-            return (getSingleDayBudget(start)) * (p.getDays() + 1);
-        }
-        return monthBudget.amount;
-    }
-
-    private boolean isSameDate(LocalDate start, LocalDate end) {
-        return start.equals(end);
+        return (getSingleDayBudget(start)) * (p.getDays() + 1);
     }
 
     private boolean isCrossMonth(LocalDate start, LocalDate end) {

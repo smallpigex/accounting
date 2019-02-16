@@ -45,7 +45,7 @@ public class AccountingTest {
     }
 
     @Test
-    public void Period() {
+    public void TwoDays() {
         accounting = new Accounting(new IBudgetRepo() {
             @Override
             public List<Budget> getAll() {
@@ -58,6 +58,22 @@ public class AccountingTest {
         LocalDate end = LocalDate.of(2019, 4, 2);
         amountShouldBe(start, end, 200);
     }
+
+    @Test
+    public void ThreeDays() {
+        accounting = new Accounting(new IBudgetRepo() {
+            @Override
+            public List<Budget> getAll() {
+                ArrayList<Budget> list = new ArrayList<>();
+                list.add(new Budget("201904",3000));
+                return list;
+            }
+        });
+        LocalDate start = LocalDate.of(2019, 4, 1);
+        LocalDate end = LocalDate.of(2019, 4, 3);
+        amountShouldBe(start, end, 300);
+    }
+
 
     @Test
     public void noBudget() {
