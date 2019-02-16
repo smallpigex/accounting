@@ -9,31 +9,30 @@ import java.util.List;
 
 public class Accounting {
 
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMM");
+    private IBudgetRepo budget;
+
     public Accounting(IBudgetRepo budget) {
         this.budget = budget;
     }
 
-    private IBudgetRepo budget;
-
     private YearMonth getYearMonth(String yearMonth) {
-        return YearMonth.parse(yearMonth, DateTimeFormatter.ofPattern("yyyyMM"));
+        return YearMonth.parse(yearMonth, dateTimeFormatter);
+    }
+
+    private boolean isMonthMatch(Budget budget, int month) {
+        return month == getYearMonth(budget.yearMonth).getMonthValue();
     }
 
     private Budget getFullMonthBudget(LocalDate date) {
         List<Budget> list = budget.getAll();
         int month = date.getMonthValue();
         for (Budget budget : list) {
-            YearMonth ym = getYearMonth(budget.yearMonth);
-            if (month == ym.getMonthValue()) {
+            if (isMonthMatch(budget, month)) {
                 return budget;
             }
         }
         return null;
-    }
-
-    public double totalAmount(LocalDate start, LocalDate end) {
-        return isCrossMonth(start, end) ?
-            getCrossMonthBudget(start, end) : getSameMonth(start, end);
     }
 
     private double getSameMonth(LocalDate start, LocalDate end) {
@@ -86,5 +85,10 @@ public class Accounting {
 
     private int getSingleDayBudget(LocalDate date) {
         return getFullMonthBudget(date).amount / date.lengthOfMonth();
+    }
+
+    public double totalAmount(LocalDate start, LocalDate end) {
+        return isCrossMonth(start, end) ?
+                getCrossMonthBudget(start, end) : getSameMonth(start, end);
     }
 }
