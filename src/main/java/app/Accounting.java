@@ -62,18 +62,18 @@ public class Accounting {
         return getStartMonthAmount(start) + getEndMonthAmount(end) + intervalAmount;
     }
 
-    private int getEndMonthAmount(LocalDate date) {
+    private double getEndMonthAmount(LocalDate date) {
         int daysInEnd = date.getDayOfMonth();
         return getSingleDayBudget(date) * daysInEnd;
     }
 
-    private int getStartMonthAmount(LocalDate date) {
+    private double getStartMonthAmount(LocalDate date) {
         int daysInStart = date.lengthOfMonth() - date.getDayOfMonth() + 1;
         return getSingleDayBudget(date) * daysInStart;
 
     }
 
-    private int getSingleDayBudget(LocalDate date) {
+    private double getSingleDayBudget(LocalDate date) {
         return getFullMonthBudget(date).amount / date.lengthOfMonth();
     }
 
